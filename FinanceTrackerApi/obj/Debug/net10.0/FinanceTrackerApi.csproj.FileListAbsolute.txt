@@ -154,6 +154,7 @@ C:\Users\Sanjutha C\Desktop\Finance Tracker\FinanceTrackerApi\obj\Debug\net10.0\
 C:\Users\Sanjutha C\Desktop\Finance Tracker\FinanceTrackerApi\obj\Debug\net10.0\FinanceTrackerApi.csproj.CoreCompileInputs.cache
 C:\Users\Sanjutha C\Desktop\Finance Tracker\FinanceTrackerApi\obj\Debug\net10.0\FinanceTrackerApi.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\Sanjutha C\Desktop\Finance Tracker\FinanceTrackerApi\obj\Debug\net10.0\FinanceTrackerApi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Sanjutha C\Desktop\Finance Tracker\FinanceTrackerApi\obj\Debug\net10.0\FinanceTrackerApi.sourcelink.json
 C:\Users\Sanjutha C\Desktop\Finance Tracker\FinanceTrackerApi\obj\Debug\net10.0\rjimswa.dswa.cache.json
 C:\Users\Sanjutha C\Desktop\Finance Tracker\FinanceTrackerApi\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 C:\Users\Sanjutha C\Desktop\Finance Tracker\FinanceTrackerApi\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json

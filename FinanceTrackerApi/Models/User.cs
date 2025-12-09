@@ -1,12 +1,12 @@
-
 namespace FinanceTrackerApi.Models
 {
-public class User
-{
-    public int Id { get; set; }
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string HashedPassword { get; set; }
-        public object PasswordHash { get; internal set; }
+    public class User
+    {
+        public int Id { get; set; }
+        public required string Username { get; set; }
+        public required string Email { get; set; }
+        public required string PasswordHash { get; set; }  // Make sure this is required
+
+       
     }
-} 
+}

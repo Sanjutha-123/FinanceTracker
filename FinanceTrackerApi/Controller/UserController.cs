@@ -1,93 +1,43 @@
+using FinanceTracker.Models;
+using FinanceTrackerApi.Service;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using System.Security.Cryptography;
-using FinanceTrackerApi.Models;
-namespace UserRegistrationApi.Controllers
+using BCrypt.Net;  // Import BCrypt.Net
+
+[Route("api/[controller]")]
+[ApiController]
+public class UsersController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
+    private readonly UserService _userService;
+
+    public UsersController(UserService userService)
     {
-        private readonly UserDbContext _context;
-
-        // Constructor to inject the DbContext
-        public UserController(UserDbContext context)
-        {
-            _context = context;
-        }
-
-        // POST: api/User/Register
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel registerModel)
-        {
-            if (registerModel == null)
-            {
-                return BadRequest("Invalid data.");
-            }
-
-            // Check if a user already exists with the same email or username
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == registerModel.Email || u.Username == registerModel.Username);
-
-            if (existingUser != null)
-            {
-                return BadRequest("A user with this email or username already exists.");
-            }
-
-            // Create a new user object
-            var user = new User
-            {
-                Email = registerModel.Email,
-                Username = registerModel.Username,
-                PasswordHash = HashPassword(registerModel.Password)
-            };
-
-            // Save the user to the database
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "User registered successfully" });
-        }
-
-        // Private method to hash the password securely
-        private string HashPassword(string password)
-        {
-            // Generate a salt
-            byte[] salt = new byte[16];
-            using (var rng = new RNGCryptoServiceProvider())
-            {
-                rng.GetBytes(salt);
-            }
-
-            // Hash the password with the salt using PBKDF2
-            string hashedPassword = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: password,
-                salt: salt,
-                prf: KeyDerivationPrf.HMACSHA512,
-                iterationCount: 10000,
-                numBytesRequested: 256 / 8));
-
-            return hashedPassword;
-        }
+        _userService = userService;
     }
 
-    public class RegisterModel
+    // POST: api/Users/Register
+    [HttpPost("Register")]
+    public IActionResult Register([FromBody] RegisterRequest request)
     {
-    }
-
-    internal class UserDbContext
-    {
-        public object Users { get; internal set; }
-
-        internal async Task SaveChangesAsync()
+        // Validate request data
+        if (request == null || string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.Email))
         {
-            throw new NotImplementedException();
+            return BadRequest("Invalid data.");
         }
+
+        // Hash the password using bcrypt before passing it to the service
+        string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+        // Now call the service method to register the user with the hashed password
+        bool result = _userService.RegisterUser(request.Username, request.Email, hashedPassword);
+
+        if (!result)
+        {
+            return Conflict("User already exists.");
+        }
+
+        return Ok("Registration successful.");
     }
 }
-
-  
 
 
 
