@@ -1,45 +1,81 @@
-using BCrypt.Net;
-using FinanceTrackerApi.Models;
-using FinanceTrackerApi.Data;
-using System.Linq;
 
-namespace FinanceTrackerApi.Service
+using FinanceTracker.Models;
+namespace FinanceTrackerApi.Data
 {
-    public class UserService
+
+public class UserService
+{
+    private readonly ApplicationDbContext _context;
+
+    public UserService(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+    }
 
-        public UserService(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+    // REGISTER USER
+   public bool RegisterUser(string username, string email, string hashedPassword)
+{
+    var existing = _context.Users.FirstOrDefault(u => u.Email == email);
+    if (existing != null)
+        return false;
 
-        public bool RegisterUser(string username, string email, string password)
-        {
-            // Check if the user already exists
-            if (_context.Users.Any(u => u.Username == username || u.Email == email))
-            {
-                return false; // User already exists
-            }
+    var user = new User
+    {
+        Username = username,
+        Email = email,
+        PasswordHash = hashedPassword,
+        CreatedAt = DateTime.UtcNow
+    };
 
-            // Hash the password using bcrypt
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+    _context.Users.Add(user);
+    _context.SaveChanges();
+    return true;
+}
+// GET USER BY EMAIL
+    public User? GetByEmail(string email)
+    {
+        return _context.Users.FirstOrDefault(u => u.Email == email);
+    }
 
-            // Create the user and ensure PasswordHash is set
-            var user = new User
-            {
-                Username = username,
-                Email = email,
-                PasswordHash = hashedPassword  // <-- Make sure PasswordHash is initialized here!
-            };
+    // SAVE REFRESH TOKEN
+    public void SaveRefreshToken(Int32 userId, string refreshToken, DateTime expiry)
+    {
+        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+        if (user == null) return;
 
-            // Add user to the database
-            _context.Users.Add(user);
-            _context.SaveChanges();
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = expiry;
 
-            return true; // Registration successful
-        }
+        _context.SaveChanges();
+    }
+
+    // VALIDATE CREDENTIALS
+    public bool ValidateUserCredentials(string email, string password, out User? user)
+    {
+        user = GetByEmail(email);
+        if (user == null)
+            return false;
+
+        bool ok = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+        return ok;
+    }
+
+    // REMOVE TOKEN
+    public void RevokeRefreshToken(Int32 userId)
+    {
+        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+        if (user == null) return;
+
+        user.RefreshToken = null;
+        user.RefreshTokenExpiry = null;
+
+        _context.SaveChanges();
+    }
+
+    // GET USER BY ID
+    public User? GetById(Int32 userId)
+    {
+        return _context.Users.FirstOrDefault(u => u.Id == userId);
+    }
     }
 }
-
-

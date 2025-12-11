@@ -1,50 +1,71 @@
+using System.Text;
+using FinanceTrackerApi.Service;
 using FinanceTrackerApi.Data;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
-// Register ApplicationDbContext with SQL Server connection
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Register AuthService for bcrypt password hashing
-builder.Services.AddScoped<AuthService>(); 
-
-// Add controllers to handle API endpoints
+// Add Services
 builder.Services.AddControllers();
-
-// Add Swagger for API documentation and testing
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerGen();
+
+// Add DbContext
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
+// Dependency Injection
+builder.Services.AddSingleton<IJwtService, JwtService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<TransactionService>();
+
+// JWT Configuration
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var accessSecret = jwtSettings.GetValue<string>("AccessTokenSecret") ?? throw new Exception("JWT secret missing");
+var issuer = jwtSettings.GetValue<string>("Issuer");
+var audience = jwtSettings.GetValue<string>("Audience");
+
+var key = Encoding.UTF8.GetBytes(accessSecret);
+
+builder.Services.AddAuthentication(options =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "User Registration API", Version = "v1" });
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = issuer,
+        ValidateAudience = true,
+        ValidAudience = audience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(30)
+    };
 });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "User Registration API v1");
-        c.RoutePrefix = string.Empty;  // Makes Swagger UI accessible at the root URL (e.g., http://localhost:5000)
-    });
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
 
-internal class AuthService
-{
-}
