@@ -1,81 +1,72 @@
-
 using FinanceTracker.Models;
+using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
+
 namespace FinanceTrackerApi.Data
 {
-
-public class UserService
-{
-    private readonly ApplicationDbContext _context;
-
-    public UserService(ApplicationDbContext context)
+    public class UserService
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    // REGISTER USER
-   public bool RegisterUser(string username, string email, string hashedPassword)
-{
-    var existing = _context.Users.FirstOrDefault(u => u.Email == email);
-    if (existing != null)
-        return false;
+        public UserService(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-    var user = new User
-    {
-        Username = username,
-        Email = email,
-        PasswordHash = hashedPassword,
-        CreatedAt = DateTime.UtcNow
-    };
+        // Register user
+        public string RegisterUser(string username, string email, string hashedPassword)
+        {
+            email = email.Trim().ToLower();
 
-    _context.Users.Add(user);
-    _context.SaveChanges();
-    return true;
-}
-// GET USER BY EMAIL
-    public User? GetByEmail(string email)
-    {
-        return _context.Users.FirstOrDefault(u => u.Email == email);
-    }
+            if (_context.Users.Any(u => u.Email == email))
+                return "Email already exists";
 
-    // SAVE REFRESH TOKEN
-    public void SaveRefreshToken(Int32 userId, string refreshToken, DateTime expiry)
-    {
-        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-        if (user == null) return;
+            var user = new User
+            {
+                Username = username,
+                Email = email,
+                Password = hashedPassword
+            };
 
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiry = expiry;
+            _context.Users.Add(user);
+            _context.SaveChanges();
 
-        _context.SaveChanges();
-    }
+            return "User registered successfully";
+        }
 
-    // VALIDATE CREDENTIALS
-    public bool ValidateUserCredentials(string email, string password, out User? user)
-    {
-        user = GetByEmail(email);
-        if (user == null)
-            return false;
+        // Validate login
+        public bool ValidateUserCredentials(string email, string password, out User? user)
+        {
+            email = email.Trim().ToLower();
 
-        bool ok = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-        return ok;
-    }
+            user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null) return false;
 
-    // REMOVE TOKEN
-    public void RevokeRefreshToken(Int32 userId)
-    {
-        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-        if (user == null) return;
+            // Compare hashed password
+            return BCrypt.Net.BCrypt.Verify(password, user.Password);
+        }
 
-        user.RefreshToken = null;
-        user.RefreshTokenExpiry = null;
+        // Save hashed refresh token
+        public void SaveRefreshToken(int userId, string refreshToken, DateTime expiry)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null) return;
 
-        _context.SaveChanges();
-    }
+            // Hash the refresh token before saving
+            user.RefreshToken = BCrypt.Net.BCrypt.HashPassword(refreshToken);
+            user.RefreshTokenExpiry = expiry;
 
-    // GET USER BY ID
-    public User? GetById(Int32 userId)
-    {
-        return _context.Users.FirstOrDefault(u => u.Id == userId);
-    }
+            _context.SaveChanges();
+        }
+
+        // Optional: verify refresh token
+        public bool VerifyRefreshToken(int userId, string refreshToken)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null || string.IsNullOrEmpty(user.RefreshToken)) return false;
+
+            return BCrypt.Net.BCrypt.Verify(refreshToken, user.RefreshToken) &&
+                   user.RefreshTokenExpiry > DateTime.UtcNow;
+        }
     }
 }

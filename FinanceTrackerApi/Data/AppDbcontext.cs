@@ -12,6 +12,7 @@ namespace FinanceTrackerApi.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+       
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,9 +22,17 @@ namespace FinanceTrackerApi.Data
                 .Property(u => u.Id)
                 .ValueGeneratedOnAdd();  // EF will auto-generate int IDs
 
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Transaction>()
+                 .Property(t => t.Type)
+                 .HasConversion<string>();
+         
+          base.OnModelCreating(modelBuilder);
             
         }
+    }
+
+    public class FiLterAPI
+    {
     }
 }
 

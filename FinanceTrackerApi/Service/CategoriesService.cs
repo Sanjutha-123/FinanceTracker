@@ -28,7 +28,8 @@ namespace FinanceTrackerApi.Service
             var category = new Category
             {
                 Name = dto.Name,
-                Description = dto.Description
+                Type = dto.Type
+            
             };
 
             _context.Categories.Add(category);
@@ -44,7 +45,7 @@ namespace FinanceTrackerApi.Service
                 return false;
 
             category.Name = dto.Name;
-            category.Description = dto.Description;
+            category.Type = dto.Type;
 
             await _context.SaveChangesAsync();
             return true;

@@ -16,11 +16,19 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+    });
 
 // Dependency Injection
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TransactionService>();
+builder.Services.AddScoped<CategoryService>();
 
 // JWT Configuration
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -53,6 +61,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
 
 // Swagger
 if (app.Environment.IsDevelopment())

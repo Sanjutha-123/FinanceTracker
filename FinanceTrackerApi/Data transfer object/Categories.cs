@@ -7,6 +7,6 @@ namespace FinanceTrackerApi.Dtos
         [Required]
         public string Name { get; set; } = string.Empty;
 
-        public string? Description { get; set; }
+        public string? Type { get; set; }
     }
 }
