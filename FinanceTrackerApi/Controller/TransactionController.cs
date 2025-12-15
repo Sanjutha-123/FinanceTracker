@@ -1,6 +1,9 @@
+
 using FinanceTracker.Models;
 using FinanceTrackerApi.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+
 
 namespace FinanceTrackerApi.Controllers
 {
@@ -16,18 +19,22 @@ namespace FinanceTrackerApi.Controllers
         }
 
         // ---------------------- CREATE ----------------------
-        [HttpPost("Add")]
-        public IActionResult Add([FromBody] Transaction t)
-        {
-           if (!Enum.IsDefined(typeof(Transaction.TransactionType), t.Type))
-        return BadRequest("Type must be income or expense.");
+     [HttpPost("Add")]
+public IActionResult Add([FromBody] Transaction t)
+{
+    // Validate Type as string
+    if (string.IsNullOrWhiteSpace(t.Type) || 
+        !(t.Type.ToLower() == "income" || t.Type.ToLower() == "expense"))
+    {
+        return BadRequest("Type must be either 'income' or 'expense'.");
+    }
 
     var result = _service.AddTransaction(t);
     return Ok(result);
+}
 
-        }
-
-        // ---------------------- GET BY USER ----------------------
+    
+  // ---------------------- GET BY USER ----------------------
         [HttpGet("User/{userId}")]
         public IActionResult GetByUser(int userId)
         {
@@ -36,11 +43,15 @@ namespace FinanceTrackerApi.Controllers
         }
 
         // ---------------------- UPDATE ----------------------
-        [HttpPut("Update/{id}")]
-        public IActionResult Update(int id, [FromBody] Transaction t)
-        {
-               if (!Enum.IsDefined(typeof(Transaction.TransactionType), t.Type))
+   [HttpPut("Update/{id}")]
+public IActionResult Update(int id, [FromBody] Transaction t)
+{
+    // Validate Type as string
+    if (string.IsNullOrWhiteSpace(t.Type) || 
+        !(t.Type.ToLower() == "income" || t.Type.ToLower() == "expense"))
+    {
         return BadRequest("Type must be either 'income' or 'expense'.");
+    }
 
     bool ok = _service.UpdateTransaction(id, t);
 
@@ -48,8 +59,7 @@ namespace FinanceTrackerApi.Controllers
         return NotFound("Transaction not found");
 
     return Ok("Updated successfully");
-
-        }
+}
 
         // ---------------------- DELETE ----------------------
         [HttpDelete("Delete/{id}")]
@@ -62,25 +72,29 @@ namespace FinanceTrackerApi.Controllers
 
             return Ok("Deleted successfully");
         }
+ 
+       [HttpGet("filter")]
+public async Task<IActionResult> FilterTransactions(
+    [FromQuery] int userId,
+    [FromQuery] string? start,
+    [FromQuery] string? end,
+    [FromQuery] string? category,
+    [FromQuery] string? type)
+{
+    DateTime? startDate = null;
+    DateTime? endDate = null;
 
-        // ---------------------- FILTER ----------------------
-        [HttpGet("Filter")]
-        public IActionResult Filter(
-            int userId,
-            DateTime? start,
-            DateTime? end,
-            string? category,
-            string? type)
-        {
-            try
-    {
-        var data = _service.Filter(userId, start, end, category, type);
-        return Ok(data);
-    }
-    catch (ArgumentException ex)
-    {
-        return BadRequest(ex.Message);
-    }
+    if (!string.IsNullOrEmpty(start))
+        startDate = DateTime.ParseExact(start, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+
+    if (!string.IsNullOrEmpty(end))
+        endDate = DateTime.ParseExact(end, "dd-MM-yyyy", CultureInfo.InvariantCulture)
+                          .AddHours(23).AddMinutes(59).AddSeconds(59); // include full day
+    var data = await _service.Filter(userId, startDate, endDate, category, type);
+    return Ok(data);
+
 }
     }
 }
+
+

@@ -4,6 +4,8 @@ using FinanceTrackerApi.Data;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using FinanceTrackerApi.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +30,9 @@ builder.Services.AddControllers()
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TransactionService>();
-builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddScoped<MonthlySummaryService>();
 
 // JWT Configuration
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

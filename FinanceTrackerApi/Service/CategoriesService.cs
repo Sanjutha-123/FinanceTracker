@@ -1,65 +1,61 @@
 using FinanceTracker.Models;
 using FinanceTrackerApi.Dtos;
 using Microsoft.EntityFrameworkCore;
+using FinanceTrackerApi.Data;
 
-namespace FinanceTrackerApi.Service
+namespace FinanceTrackerApi.Services
 {
-    public class CategoryService
+    public class CategoryService : ICategoryService
     {
-        private readonly Data.ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public CategoryService(Data.ApplicationDbContext context)
+        public CategoryService(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<Category>> GetAllAsync()
+        public async Task<Category> CreateAsync(CategoryDto dto)
         {
-            return await _context.Categories.ToListAsync();
+            var category = new Category { Name = dto.Name, Type = dto.Type };
+            _context.Categories.Add(category);
+            await _context.SaveChangesAsync();
+            return category;
         }
 
-        public async Task<Category?> GetByIdAsync(int id)
+        public async Task<List<Category>> GetAllAsync(string? type = null)
+        {
+            var query = _context.Categories.AsQueryable();
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(c => c.Type == type);
+            }
+            return await query.ToListAsync();
+        }
+
+        public async Task<Category?> GetAsync(int id)
         {
             return await _context.Categories.FindAsync(id);
         }
 
-        public async Task<Category> CreateAsync(CategoryDto dto)
-        {
-            var category = new Category
-            {
-                Name = dto.Name,
-                Type = dto.Type
-            
-            };
-
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
-
-            return category;
-        }
-
-        public async Task<bool> UpdateAsync(int id, CategoryDto dto)
+        public async Task<Category?> UpdateAsync(int id, CategoryDto dto)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-                return false;
+            if (category == null) return null;
 
             category.Name = dto.Name;
             category.Type = dto.Type;
 
             await _context.SaveChangesAsync();
-            return true;
+            return category;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-                return false;
+            if (category == null) return false;
 
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
-
             return true;
         }
     }

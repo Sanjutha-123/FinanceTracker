@@ -1,5 +1,8 @@
 using FinanceTracker.Models;
+using Microsoft.EntityFrameworkCore;
 using static FinanceTracker.Models.Transaction;
+using System.Globalization;
+
 
 namespace FinanceTrackerApi.Data
 {
@@ -16,10 +19,12 @@ namespace FinanceTrackerApi.Data
         public Transaction AddTransaction(Transaction transaction)
         {
             // VALIDATE TYPE → only income or expense allowed
-            if (!Enum.IsDefined(typeof(TransactionType), transaction.Type))
-            {
-                throw new ArgumentException("Type must be 'income' or 'expense'");
-            }
+         if (string.IsNullOrWhiteSpace(transaction.Type) || 
+    !(transaction.Type.ToLower() == "income" || transaction.Type.ToLower() == "expense"))
+{
+    throw new ArgumentException("Type must be 'income' or 'expense'");
+}
+
 
             transaction.Datetime2 = DateTime.Now;
 
@@ -57,11 +62,13 @@ namespace FinanceTrackerApi.Data
             if (existing == null)
                 return false;
 
-            // VALIDATE TYPE
-            if (!Enum.IsDefined(typeof(TransactionType), updated.Type))
-            {
-                throw new ArgumentException("Type must be 'income' or 'expense'");
-            }
+           // VALIDATE TYPE
+if (string.IsNullOrWhiteSpace(updated.Type) || 
+    !(updated.Type.ToLower() == "income" || updated.Type.ToLower() == "expense"))
+{
+    throw new ArgumentException("Type must be 'income' or 'expense'");
+}
+
 
             existing.Amount = updated.Amount;
             existing.Type = updated.Type;
@@ -85,36 +92,37 @@ namespace FinanceTrackerApi.Data
         }
 
         // ---------------------- FILTER ----------------------
-        public List<Transaction> Filter(int userId, DateTime? start, DateTime? end, string? category, string? type)
-        {
-            var query = _context.Transactions.Where(t => t.UserId == userId);
 
-            if (start.HasValue)
-                query = query.Where(t => t.Datetime2 >= start.Value);
+    public async Task<List<Transaction>> Filter(
+    int userId,
+    DateTime? start,
+    DateTime? end,
+    string? category,
+    string? type)
+{
+    var query = _context.Transactions.AsQueryable();
 
-            if (end.HasValue)
-                query = query.Where(t => t.Datetime2 <= end.Value);
+    query = query.Where(t => t.UserId == userId);
 
-            if (!string.IsNullOrWhiteSpace(category))
-                query = query.Where(t => t.Category == category);
+    if (start.HasValue)
+        query = query.Where(t => t.Datetime2 >= start.Value);
 
-            // TYPE FILTER (income / expense)
-            if (!string.IsNullOrWhiteSpace(type))
-            {
-                if (Enum.TryParse<TransactionType>(type, true, out var parsedType))
-                {
-                    query = query.Where(t => t.Type == parsedType);
-                }
-                else
-                {
-                    throw new ArgumentException("Type must be 'income' or 'expense'");
+    if (end.HasValue)
+        query = query.Where(t => t.Datetime2 <= end.Value);
 
-                }
-            }
+    if (!string.IsNullOrEmpty(category))
+        query = query.Where(t => t.Category == category);
 
-            return query
-                .OrderByDescending(t => t.Datetime2)
-                .ToList();
-        }
+   if (!string.IsNullOrEmpty(type))
+{
+    if (type.ToLower() == "income")
+        query = query.Where(t => t.Type.ToLower() == "income");
+    else if (type.ToLower() == "expense")
+        query = query.Where(t => t.Type.ToLower() == "expense");
+}
+
+
+    return await query.ToListAsync();
+}
     }
 }

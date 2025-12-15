@@ -12,7 +12,9 @@ namespace FinanceTrackerApi.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
-       
+        public DbSet<MonthlySummary> MonthlySummaries{ get; set; }
+
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,8 +23,8 @@ namespace FinanceTrackerApi.Data
             modelBuilder.Entity<User>().ToTable("Users")
                 .Property(u => u.Id)
                 .ValueGeneratedOnAdd();  // EF will auto-generate int IDs
-
-            modelBuilder.Entity<Transaction>()
+         
+                  modelBuilder.Entity<Transaction>().ToTable("Transactions", "dbo")// schema name
                  .Property(t => t.Type)
                  .HasConversion<string>();
          
