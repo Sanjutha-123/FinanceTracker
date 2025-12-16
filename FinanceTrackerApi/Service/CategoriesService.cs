@@ -22,28 +22,14 @@ namespace FinanceTrackerApi.Services
             return category;
         }
 
-        public async Task<List<Category>> GetAllAsync(string? type = null)
-        {
-            var query = _context.Categories.AsQueryable();
-            if (!string.IsNullOrEmpty(type))
-            {
-                query = query.Where(c => c.Type == type);
-            }
-            return await query.ToListAsync();
-        }
-
-        public async Task<Category?> GetAsync(int id)
-        {
-            return await _context.Categories.FindAsync(id);
-        }
-
-        public async Task<Category?> UpdateAsync(int id, CategoryDto dto)
+         public async Task<Category?> UpdateAsync(int id, CategoryDto dto)
         {
             var category = await _context.Categories.FindAsync(id);
             if (category == null) return null;
-
+                    
             category.Name = dto.Name;
             category.Type = dto.Type;
+          
 
             await _context.SaveChangesAsync();
             return category;

@@ -1,7 +1,8 @@
 using FinanceTracker.Models;
 using Microsoft.EntityFrameworkCore;
-using static FinanceTracker.Models.Transaction;
-using System.Globalization;
+using System.Linq.Dynamic.Core;
+
+
 
 
 namespace FinanceTrackerApi.Data
@@ -47,15 +48,59 @@ namespace FinanceTrackerApi.Data
         }
 
         // ---------------------- READ ----------------------
-        public List<Transaction> GetByUser(int userId)
+        //  Get paginated transactions
+   public async Task<FinanceTracker.Models.PagedResult<Transaction>> GetPagedAsync(
+    int pageNumber,
+    int pageSize,
+    string? sortBy = "Datetime2",
+    string? sortDirection = "desc")
+{
+    var query = _context.Transactions.AsQueryable().AsNoTracking();
+
+    // Default safe sorting
+    sortBy = string.IsNullOrWhiteSpace(sortBy) ? "Datetime2" : sortBy;
+    sortDirection = sortDirection?.ToLower() == "asc" ? "asc" : "desc";
+
+    string sortExpression = $"{sortBy} {sortDirection}";
+
+    // Dynamic sorting
+    query = query.OrderBy(sortExpression);
+
+    var totalRecords = await query.CountAsync();
+
+    var data = await query
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+            .Select(t => new Transaction
+    {
+        Id = t.Id,
+        Amount = t.Amount,
+        Datetime2 = t.Datetime2,
+        Type = t.Type,
+        Category = t.Category
+    })
+
+        .ToListAsync();
+
+    return new FinanceTracker.Models.PagedResult<Transaction>
+    {
+        TotalRecords = totalRecords,
+        PageNumber = pageNumber,
+        PageSize = pageSize,
+        Data = data
+    };
+}
+
+
+        //  Get a single transaction by ID
+        public async Task<Transaction?> GetByIdAsync(int id)
         {
-            return _context.Transactions
-                .Where(t => t.UserId == userId)
-                .OrderByDescending(t => t.Datetime2)
-                .ToList();
+            return await _context.Transactions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        // ---------------------- UPDATE ----------------------
+ // ---------------------- UPDATE ----------------------
         public bool UpdateTransaction(int id, Transaction updated)
         {
             var existing = _context.Transactions.FirstOrDefault(t => t.Id == id);
@@ -125,4 +170,5 @@ if (string.IsNullOrWhiteSpace(updated.Type) ||
     return await query.ToListAsync();
 }
     }
+
 }

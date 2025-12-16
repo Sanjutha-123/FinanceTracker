@@ -15,7 +15,8 @@
           "Microsoft.EntityFrameworkCore.Design": "8.0.22",
           "Microsoft.EntityFrameworkCore.SqlServer": "8.0.22",
           "Swashbuckle.AspNetCore": "8.0.0",
-          "System.IdentityModel.Tokens.Jwt": "8.0.0"
+          "System.IdentityModel.Tokens.Jwt": "8.0.0",
+          "System.Linq.Dynamic.Core": "1.7.1"
         },
         "runtime": {
           "FinanceTrackerApi.dll": {}
@@ -791,6 +792,14 @@
           }
         }
       },
+      "System.Linq.Dynamic.Core/1.7.1": {
+        "runtime": {
+          "lib/net8.0/System.Linq.Dynamic.Core.dll": {
+            "assemblyVersion": "1.7.1.0",
+            "fileVersion": "1.7.1.0"
+          }
+        }
+      },
       "System.Memory.Data/1.0.2": {
         "runtime": {
           "lib/netstandard2.0/System.Memory.Data.dll": {
@@ -1235,6 +1244,13 @@
       "sha512": "sha512-K0dNZoXiedkpkz8v8xj3jH5IeSa3iAPNu2OegePynCeG6wiLx7CvBfDa90hYOBJ58Y21tZFd9RLpzfS7rEaHlQ==",
       "path": "system.identitymodel.tokens.jwt/8.0.0",
       "hashPath": "system.identitymodel.tokens.jwt.8.0.0.nupkg.sha512"
+    },
+    "System.Linq.Dynamic.Core/1.7.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qlgku/j9r0fei52yxR5ho9nC/fWGZuaELqPkZmJm24QZbBW4cL3sVWri1dZ0cKgARD7cgFKBdRqzxYoIG5Q0Cg==",
+      "path": "system.linq.dynamic.core/1.7.1",
+      "hashPath": "system.linq.dynamic.core.1.7.1.nupkg.sha512"
     },
     "System.Memory.Data/1.0.2": {
       "type": "package",

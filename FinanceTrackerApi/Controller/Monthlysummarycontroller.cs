@@ -17,10 +17,10 @@ namespace FinanceTrackerApi.Controllers
         }
 
         [HttpGet]
-public async Task<IActionResult> GetMonthlySummary(
-    int userId,
-    int year,
-    int month)
+        public async Task<IActionResult> GetMonthlySummary(
+        int userId,
+        int year,
+        int month)
 {
     var startDate = new DateTime(year, month, 1);
     var endDate = startDate.AddMonths(1);

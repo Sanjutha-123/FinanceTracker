@@ -17,10 +17,9 @@ namespace FinanceTrackerApi.Controllers
         {
             _service = service;
         }
-
-        // ---------------------- CREATE ----------------------
+   // ---------------------- CREATE ----------------------
      [HttpPost("Add")]
-public IActionResult Add([FromBody] Transaction t)
+     public IActionResult Add([FromBody] Transaction t)
 {
     // Validate Type as string
     if (string.IsNullOrWhiteSpace(t.Type) || 
@@ -33,16 +32,28 @@ public IActionResult Add([FromBody] Transaction t)
     return Ok(result);
 }
 
-    
-  // ---------------------- GET BY USER ----------------------
-        [HttpGet("User/{userId}")]
-        public IActionResult GetByUser(int userId)
+ // ---------------------- GET BY USER ----------------------
+       
+        [HttpGet]
+        public async Task<IActionResult> Get(int pageNumber = 1, int pageSize = 10,    string? sortBy = "Datetime2",
+    string? sortDirection = "desc")
+
         {
-            var data = _service.GetByUser(userId);
-            return Ok(data);
+            var result = await _service.GetPagedAsync(pageNumber, pageSize, sortBy, sortDirection);
+            return Ok(result);
         }
 
-        // ---------------------- UPDATE ----------------------
+ //------------- GET /api/transactionsid/------------------------
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var transaction = await _service.GetByIdAsync(id);
+            if (transaction == null) return NotFound();
+            return Ok(transaction);
+        }
+
+
+// ---------------------- UPDATE ----------------------
    [HttpPut("Update/{id}")]
 public IActionResult Update(int id, [FromBody] Transaction t)
 {
@@ -61,7 +72,7 @@ public IActionResult Update(int id, [FromBody] Transaction t)
     return Ok("Updated successfully");
 }
 
-        // ---------------------- DELETE ----------------------
+ // ---------------------- DELETE ----------------------
         [HttpDelete("Delete/{id}")]
         public IActionResult Delete(int id)
         {
@@ -74,12 +85,12 @@ public IActionResult Update(int id, [FromBody] Transaction t)
         }
  
        [HttpGet("filter")]
-public async Task<IActionResult> FilterTransactions(
-    [FromQuery] int userId,
-    [FromQuery] string? start,
-    [FromQuery] string? end,
-    [FromQuery] string? category,
-    [FromQuery] string? type)
+       public async Task<IActionResult> FilterTransactions(
+       [FromQuery] int userId,
+       [FromQuery] string? start,
+       [FromQuery] string? end,
+       [FromQuery] string? category,
+       [FromQuery] string? type)
 {
     DateTime? startDate = null;
     DateTime? endDate = null;
@@ -96,5 +107,7 @@ public async Task<IActionResult> FilterTransactions(
 }
     }
 }
+
+
 
 
