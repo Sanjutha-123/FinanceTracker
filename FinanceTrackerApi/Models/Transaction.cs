@@ -9,6 +9,7 @@ namespace FinanceTracker.Models
         public decimal Amount { get; set; }
 
         // Change from enum to string
+
         public string Type { get; set; } = string.Empty; // Allowed values: "income", "expense"
 
         public string? Category { get; set; }
