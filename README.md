@@ -1,1 +1,1 @@
-# FinanceTracker
+# PersonalFinance Tracker
