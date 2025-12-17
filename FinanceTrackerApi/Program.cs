@@ -75,6 +75,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+//auth middleware
 app.UseAuthentication();
 app.UseAuthorization();
 

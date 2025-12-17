@@ -2,7 +2,9 @@
 using FinanceTracker.Models;
 using FinanceTrackerApi.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using System.Text;
 
 
 namespace FinanceTrackerApi.Controllers
@@ -107,6 +109,8 @@ public IActionResult Update(int id, [FromBody] Transaction t)
 }
     }
 }
+    
+   
 
 
 

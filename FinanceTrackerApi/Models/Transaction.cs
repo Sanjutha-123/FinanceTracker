@@ -15,7 +15,6 @@ namespace FinanceTracker.Models
         public string? Category { get; set; }
         public string? Description { get; set; }
         public DateTime Datetime2 { get; set; } = DateTime.UtcNow;
-
         internal class TransactionType
         {
         }

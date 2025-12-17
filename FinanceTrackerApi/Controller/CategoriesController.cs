@@ -43,7 +43,7 @@ namespace FinanceTrackerApi.Controllers
         if (!deleted)
             return NotFound("Category not found");
 
-        return NoContent();
+        return Ok("Category deleted successfully");
     }
 }
     }
